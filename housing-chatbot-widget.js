@@ -302,7 +302,7 @@ What would you like to know? (Note: I am an AI and can make mistakes. Email dhyl
     'How many units are affordable at 30% AMI in Minneapolis?',
     'Which property in St Paul has the most affordable units?',
     'Which properties have affordability expiring soon?',
-    'Give me a list of properties with 4D (LIRC) funding.',
+    'How many LIHTC properties are there in Bloomington?',
     'Provide a list of affordable properties in Minnesota\'s 3rd Congressional district.',
   ];
 
