@@ -411,7 +411,7 @@ What would you like to know? (Note: I am an AI and can make mistakes. Email dhyl
       const c = document.createElement('button');
       c.className = 'hcb-chip';
       c.textContent = q;
-      c.addEventListener('click', () => { chips.innerHTML = ''; sendMsg(q); });
+      c.addEventListener('click', () => { sendMsg(q); });
       chips.appendChild(c);
     });
   }
@@ -450,7 +450,6 @@ What would you like to know? (Note: I am an AI and can make mistakes. Email dhyl
   async function sendMsg(text) {
     text = text.trim();
     if (!text || isLoading) return;
-    chips.innerHTML = '';
     addMsg('user', text);
     input.value = '';
     input.style.height = 'auto';
