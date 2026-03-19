@@ -1,11 +1,9 @@
 /**
- * STREAMS Affordable Housing Chatbot Widget
+ * STREAMS Affordable Housing Chatbot Widget — HousingLink Branded
  *
  * Supports two display modes:
  *
  * ── MODE 1: FLOATING BUTTON (default) ──────────────────────────────────────
- * A green button appears in the bottom-right corner. Clicking it opens the
- * chat panel as a pop-up overlay.
  *
  *   <script
  *     src="https://your-host.com/housing-chatbot-widget.js"
@@ -15,13 +13,9 @@
  *   </script>
  *
  * ── MODE 2: INLINE EMBED ───────────────────────────────────────────────────
- * The chat interface renders directly inside a <div> you place on the page.
- * No floating button. The chatbot is always visible and open.
  *
- *   <!-- 1. Place this div wherever you want the chat to appear -->
  *   <div id="housing-chat" style="height: 600px;"></div>
  *
- *   <!-- 2. Add the script tag (anywhere on the page) -->
  *   <script
  *     src="https://your-host.com/housing-chatbot-widget.js"
  *     data-worker="https://housing-chatbot.yourname.workers.dev"
@@ -35,7 +29,7 @@
  *   data-worker   (required) URL of your deployed Cloudflare Worker
  *   data-title    (optional) Header title. Default: "Affordable Housing Assistant"
  *   data-theme    (optional) "light" (default) or "dark"
- *   data-mode     (optional) "inline" to embed directly in a div. Default: floating button
+ *   data-mode     (optional) "inline" to embed in a div. Default: floating button
  *   data-target   (required when data-mode="inline") ID of the container div
  */
 (function () {
@@ -45,249 +39,291 @@
   const WORKER = (script.getAttribute('data-worker') || '').replace(/\/$/, '');
   const TITLE  = script.getAttribute('data-title')  || 'Affordable Housing Assistant';
   const THEME  = script.getAttribute('data-theme')  || 'light';
-  const MODE   = script.getAttribute('data-mode')   || 'float';   // 'float' | 'inline'
+  const MODE   = script.getAttribute('data-mode')   || 'float';
   const TARGET = script.getAttribute('data-target') || '';
 
   if (!WORKER) { console.error('[HousingBot] data-worker is required.'); return; }
   if (MODE === 'inline' && !TARGET) { console.error('[HousingBot] data-target is required when data-mode="inline".'); return; }
-  if (document.getElementById('hcb-root')) return; // prevent double-init
+  if (document.getElementById('hcb-root')) return;
 
   const INLINE = MODE === 'inline';
 
-  // ── STYLES ──────────────────────────────────────────────────────────────────
+  // ── HOUSINGLINK BRAND COLORS ───────────────────────────────────────────────
+  // Primary teal:   #008c99
+  // Secondary blue: #0073ae
+  // Green accent:   #00a94f
+  // Light teal bg:  tint of #008c99
+
   const CSS = `
-@import url('https://fonts.googleapis.com/css2?family=Lora:wght@500;600&family=Source+Sans+3:wght@300;400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Open+Sans:wght@300;400;500;600&display=swap');
 
 /* ── THEME VARIABLES ── */
 #hcb-root[data-theme="light"] {
-  --bg:        #ffffff;
-  --surface:   #f7f6f2;
-  --surface2:  #edece7;
-  --border:    #dddbd3;
-  --accent:    #1a5c3a;
-  --accent2:   rgba(26,92,58,0.09);
-  --text:      #1b1a17;
-  --muted:     #7a7870;
-  --user-bg:   #1a5c3a;
-  --user-text: #ffffff;
-  --bot-bg:    #f0efe9;
-  --bot-text:  #1b1a17;
-  --shadow:    0 12px 48px rgba(0,0,0,0.15), 0 2px 8px rgba(0,0,0,0.08);
+  --bg:          #ffffff;
+  --surface:     #f2f9fa;
+  --surface2:    #e0f0f2;
+  --border:      #b8dde1;
+  --accent:      #008c99;
+  --accent-dark: #006d78;
+  --accent2:     rgba(0,140,153,0.09);
+  --accent-blue: #0073ae;
+  --text:        #1a2e30;
+  --muted:       #5a7a7d;
+  --user-bg:     #008c99;
+  --user-text:   #ffffff;
+  --bot-bg:      #e8f5f6;
+  --bot-text:    #1a2e30;
+  --shadow:      0 12px 48px rgba(0,140,153,0.15), 0 2px 8px rgba(0,0,0,0.08);
+  --header-grad: linear-gradient(135deg, #008c99 0%, #0073ae 100%);
 }
 #hcb-root[data-theme="dark"] {
-  --bg:        #141610;
-  --surface:   #1c1f19;
-  --surface2:  #242720;
-  --border:    #333629;
-  --accent:    #5aaf7a;
-  --accent2:   rgba(90,175,122,0.1);
-  --text:      #e5e3db;
-  --muted:     #7a7870;
-  --user-bg:   #2d6b47;
-  --user-text: #f0ede4;
-  --bot-bg:    #242720;
-  --bot-text:  #e5e3db;
-  --shadow:    0 12px 48px rgba(0,0,0,0.5);
+  --bg:          #0d1e20;
+  --surface:     #122628;
+  --surface2:    #1a3335;
+  --border:      #1f4044;
+  --accent:      #00b8c8;
+  --accent-dark: #008c99;
+  --accent2:     rgba(0,184,200,0.1);
+  --accent-blue: #2196c8;
+  --text:        #d8f0f2;
+  --muted:       #6a9a9d;
+  --user-bg:     #006d78;
+  --user-text:   #e8f8f9;
+  --bot-bg:      #1a3335;
+  --bot-text:    #d8f0f2;
+  --shadow:      0 12px 48px rgba(0,0,0,0.5);
+  --header-grad: linear-gradient(135deg, #006d78 0%, #005580 100%);
 }
 
-/* ── FLOATING MODE: FAB BUTTON ── */
+/* ── FAB BUTTON ── */
 #hcb-fab {
   position: fixed; bottom: 24px; right: 24px;
-  width: 56px; height: 56px; border-radius: 50%;
-  background: var(--accent); border: none; cursor: pointer;
+  width: 58px; height: 58px; border-radius: 50%;
+  background: var(--header-grad);
+  border: none; cursor: pointer;
   display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 4px 20px rgba(26,92,58,0.45);
+  box-shadow: 0 4px 20px rgba(0,140,153,0.5);
   transition: transform 0.22s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.2s;
   z-index: 99998;
 }
-#hcb-fab:hover { transform: scale(1.1); }
+#hcb-fab:hover { transform: scale(1.1); box-shadow: 0 6px 28px rgba(0,140,153,0.6); }
 #hcb-fab .i-chat  { display: block; }
 #hcb-fab .i-close { display: none; }
 #hcb-fab.open .i-chat  { display: none; }
 #hcb-fab.open .i-close { display: block; }
 
-/* ── FLOATING MODE: PANEL ── */
+/* ── FLOATING PANEL ── */
 #hcb-root[data-mode="float"] #hcb-panel {
   position: fixed; bottom: 96px; right: 24px;
-  width: 390px; max-width: calc(100vw - 32px);
-  height: 560px; max-height: calc(100vh - 112px);
+  width: 400px; max-width: calc(100vw - 32px);
+  height: 580px; max-height: calc(100vh - 112px);
   border-radius: 20px;
   box-shadow: var(--shadow);
   transform: translateY(18px) scale(0.95);
-  opacity: 0;
-  pointer-events: none;
+  opacity: 0; pointer-events: none;
   transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1), opacity 0.2s ease;
   z-index: 99997;
 }
 #hcb-root[data-mode="float"] #hcb-panel.open {
   transform: translateY(0) scale(1);
-  opacity: 1;
-  pointer-events: all;
+  opacity: 1; pointer-events: all;
 }
 
-/* ── INLINE MODE: PANEL fills its container ── */
+/* ── INLINE PANEL ── */
 #hcb-root[data-mode="inline"] {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  min-height: 400px;
+  display: flex; flex-direction: column;
+  height: 100%; min-height: 400px;
 }
 #hcb-root[data-mode="inline"] #hcb-panel {
-  position: relative;
-  width: 100%; height: 100%;
-  border-radius: 16px;
-  box-shadow: var(--shadow);
-  transform: none;
-  opacity: 1;
-  pointer-events: all;
-  flex: 1;
+  position: relative; width: 100%; height: 100%;
+  border-radius: 16px; box-shadow: var(--shadow);
+  transform: none; opacity: 1; pointer-events: all; flex: 1;
 }
 
-/* ── SHARED PANEL STYLES ── */
+/* ── SHARED PANEL ── */
 #hcb-panel {
-  background: var(--bg);
-  border: 1px solid var(--border);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
+  background: var(--bg); border: 1px solid var(--border);
+  display: flex; flex-direction: column; overflow: hidden;
 }
 
 /* ── HEADER ── */
 #hcb-header {
-  background: var(--accent); padding: 0.9rem 1.1rem;
+  background: var(--header-grad);
+  padding: 1rem 1.1rem;
   display: flex; align-items: center; gap: 0.75rem; flex-shrink: 0;
+  position: relative;
+}
+/* Subtle texture overlay on header */
+#hcb-header::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  pointer-events: none;
 }
 .hcb-av {
-  width: 36px; height: 36px; border-radius: 50%;
-  background: rgba(255,255,255,0.18);
+  width: 38px; height: 38px; border-radius: 10px;
+  background: rgba(255,255,255,0.22);
+  border: 1px solid rgba(255,255,255,0.3);
   display: flex; align-items: center; justify-content: center;
-  font-size: 1rem; flex-shrink: 0;
+  font-size: 1.1rem; flex-shrink: 0;
+  position: relative; z-index: 1;
 }
-#hcb-header .hcb-title { font-family: 'Lora',serif; color:#fff; font-size:0.9375rem; font-weight:600; }
-#hcb-header .hcb-sub   { color:rgba(255,255,255,0.7); font-family:'Source Sans 3',sans-serif; font-size:0.72rem; margin-top:0.1rem; }
-
-/* Close button — hidden in inline mode */
+.hcb-header-text { position: relative; z-index: 1; }
+.hcb-title {
+  font-family: 'Montserrat', sans-serif;
+  color: #fff; font-size: 0.9375rem; font-weight: 700;
+  letter-spacing: 0.01em;
+}
+.hcb-sub {
+  color: rgba(255,255,255,0.78);
+  font-family: 'Open Sans', sans-serif;
+  font-size: 0.72rem; margin-top: 0.1rem;
+}
 .hcb-xbtn {
-  margin-left: auto; background: rgba(255,255,255,0.14);
-  border: none; border-radius: 7px; width: 28px; height: 28px;
+  margin-left: auto; background: rgba(255,255,255,0.15);
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 8px; width: 30px; height: 30px;
   cursor: pointer; display: flex; align-items: center; justify-content: center;
   color: #fff; flex-shrink: 0; transition: background 0.15s;
+  position: relative; z-index: 1;
 }
 .hcb-xbtn:hover { background: rgba(255,255,255,0.28); }
 #hcb-root[data-mode="inline"] .hcb-xbtn { display: none; }
 
 /* ── MESSAGES ── */
 #hcb-msgs {
-  flex: 1; overflow-y: auto; padding: 1rem 0.85rem;
-  display: flex; flex-direction: column; gap: 0.65rem;
+  flex: 1; overflow-y: auto; padding: 1rem 0.9rem;
+  display: flex; flex-direction: column; gap: 0.7rem;
   background: var(--surface);
 }
 #hcb-msgs::-webkit-scrollbar { width: 4px; }
 #hcb-msgs::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
 
-.hcb-msg { display: flex; gap: 0.55rem; max-width: 88%; animation: hcbIn 0.2s ease; }
+.hcb-msg { display: flex; gap: 0.55rem; max-width: 90%; animation: hcbIn 0.2s ease; }
 @keyframes hcbIn { from { opacity:0; transform:translateY(7px); } to { opacity:1; transform:translateY(0); } }
 .hcb-msg.user { align-self: flex-end; flex-direction: row-reverse; }
 .hcb-msg.bot  { align-self: flex-start; }
 
 .hcb-mav {
-  width: 26px; height: 26px; border-radius: 50%; flex-shrink: 0;
+  width: 28px; height: 28px; border-radius: 8px; flex-shrink: 0;
   display: flex; align-items: center; justify-content: center;
-  font-size: 0.8rem; margin-top: 3px;
+  font-size: 0.85rem; margin-top: 3px;
 }
 .hcb-msg.bot  .hcb-mav { background: var(--accent); color: #fff; }
 .hcb-msg.user .hcb-mav { background: var(--surface2); color: var(--muted); }
 
 .hcb-bub {
-  padding: 0.55rem 0.85rem; border-radius: 14px;
-  font-family: 'Source Sans 3',sans-serif; font-size: 0.875rem; line-height: 1.55;
+  padding: 0.6rem 0.9rem; border-radius: 14px;
+  font-family: 'Open Sans', sans-serif; font-size: 0.875rem; line-height: 1.6;
   white-space: pre-wrap; word-break: break-word;
 }
-.hcb-msg.bot  .hcb-bub { background: var(--bot-bg);  color: var(--bot-text);  border-bottom-left-radius:  4px; }
-.hcb-msg.user .hcb-bub { background: var(--user-bg); color: var(--user-text); border-bottom-right-radius: 4px; }
+.hcb-msg.bot  .hcb-bub {
+  background: var(--bot-bg); color: var(--bot-text);
+  border-bottom-left-radius: 4px;
+  border: 1px solid var(--border);
+}
+.hcb-msg.user .hcb-bub {
+  background: var(--user-bg); color: var(--user-text);
+  border-bottom-right-radius: 4px;
+}
 
 /* ── TYPING INDICATOR ── */
 .hcb-typing { display: flex; gap: 5px; align-items: center; padding: 3px 0; }
 .hcb-typing span {
-  width: 6px; height: 6px; border-radius: 50%; background: var(--muted);
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--accent); opacity: 0.6;
   animation: hcbBounce 1.2s ease infinite;
 }
 .hcb-typing span:nth-child(2) { animation-delay: 0.18s; }
 .hcb-typing span:nth-child(3) { animation-delay: 0.36s; }
-@keyframes hcbBounce { 0%,60%,100% { transform:translateY(0); } 30% { transform:translateY(-6px); } }
+@keyframes hcbBounce { 0%,60%,100% { transform:translateY(0); opacity:0.6; } 30% { transform:translateY(-6px); opacity:1; } }
 
 /* ── SUGGESTION CHIPS ── */
 #hcb-chips {
-  padding: 0 0.85rem 0.6rem; background: var(--surface);
-  display: flex; gap: 0.45rem; flex-wrap: wrap;
+  padding: 0 0.9rem 0.65rem; background: var(--surface);
+  display: flex; gap: 0.4rem; flex-wrap: wrap;
 }
 .hcb-chip {
-  background: var(--bg); border: 1px solid var(--border); border-radius: 99px;
-  padding: 0.25rem 0.7rem; font-family: 'Source Sans 3',sans-serif; font-size: 0.73rem;
+  background: var(--bg); border: 1px solid var(--accent);
+  border-radius: 99px; padding: 0.28rem 0.75rem;
+  font-family: 'Open Sans', sans-serif; font-size: 0.72rem; font-weight: 500;
   color: var(--accent); cursor: pointer; white-space: nowrap; transition: all 0.15s;
 }
-.hcb-chip:hover { background: var(--accent2); border-color: var(--accent); }
+.hcb-chip:hover { background: var(--accent); color: #fff; }
 
 /* ── INPUT ROW ── */
 #hcb-input-row {
-  display: flex; gap: 0.45rem; padding: 0.75rem 0.85rem;
+  display: flex; gap: 0.45rem; padding: 0.75rem 0.9rem;
   background: var(--bg); border-top: 1px solid var(--border); flex-shrink: 0;
 }
 #hcb-input {
   flex: 1; background: var(--surface); border: 1px solid var(--border);
-  border-radius: 11px; color: var(--text);
-  font-family: 'Source Sans 3',sans-serif; font-size: 0.875rem;
-  padding: 0.55rem 0.8rem; outline: none; resize: none;
-  max-height: 120px; line-height: 1.45; transition: border-color 0.15s;
+  border-radius: 12px; color: var(--text);
+  font-family: 'Open Sans', sans-serif; font-size: 0.875rem;
+  padding: 0.55rem 0.85rem; outline: none; resize: none;
+  max-height: 120px; line-height: 1.45; transition: border-color 0.15s, box-shadow 0.15s;
 }
-#hcb-input:focus { border-color: var(--accent); }
+#hcb-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(0,140,153,0.12);
+}
 #hcb-input::placeholder { color: var(--muted); }
 #hcb-send {
-  background: var(--accent); border: none; border-radius: 11px;
-  width: 38px; height: 38px; cursor: pointer; flex-shrink: 0;
+  background: var(--header-grad); border: none; border-radius: 12px;
+  width: 40px; height: 40px; cursor: pointer; flex-shrink: 0;
   display: flex; align-items: center; justify-content: center; align-self: flex-end;
-  transition: opacity 0.15s;
+  transition: opacity 0.15s, transform 0.15s;
 }
-#hcb-send:hover   { opacity: 0.85; }
-#hcb-send:disabled { opacity: 0.38; cursor: not-allowed; }
+#hcb-send:hover   { opacity: 0.88; transform: scale(1.05); }
+#hcb-send:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
 
 /* ── FOOTER ── */
 #hcb-footer {
-  padding: 0.4rem 0.85rem 0.5rem; text-align: center;
-  font-family: 'Source Sans 3',sans-serif; font-size: 0.68rem;
-  color: var(--muted); background: var(--bg); border-top: 1px solid var(--border);
+  padding: 0.4rem 0.9rem 0.5rem; text-align: center;
+  font-family: 'Open Sans', sans-serif; font-size: 0.67rem;
+  color: var(--muted); background: var(--bg);
+  border-top: 1px solid var(--border);
 }
+#hcb-footer a { color: var(--accent); text-decoration: none; }
+#hcb-footer a:hover { text-decoration: underline; }
 `;
 
+  // ── CONTENT ──────────────────────────────────────────────────────────────────
+  const WELCOME = `Hello! I can help you understand HousingLink's affordable housing data. You can ask me things like:
+
+• How many units are affordable at 30% AMI in Minneapolis?
+• Which property in Bloomington has the most units affordable at 60% AMI or less?
+• Which properties in Duluth have an affordability commitment expiring soon?
+
+What would you like to know? (Note: I am an AI and can make mistakes. Email dhylton@housinglink.org if you have questions on the data)`;
+
   const CHIPS = [
+    'What funding programs support affordable housing in Minnesota?',
     'How many units are affordable at 30% AMI in Minneapolis?',
-    'Which county has the most affordable housing?',
-    'How many senior housing properties are in Minnesota?',
-    'What funding programs support affordable housing here?',
+    'Which property in St Paul has the most affordable units?',
     'Which properties have affordability expiring soon?',
+    'Give me a list of properties with 4D (LIRC) funding.',
+    'Provide a list of affordable properties in Minnesota\'s 3rd Congressional district.',
   ];
 
-  const WELCOME = `Hello! I can help you explore Minnesota's affordable housing data.\n\nYou can ask me things like:\n• How many units are affordable at 30% AMI in Minneapolis?\n• Which county has the most affordable housing?\n• Are there properties expiring soon in Hennepin County?\n\nWhat would you like to know?`;
-
-  // ── INJECT STYLES ──────────────────────────────────────────────────────────
+  // ── INJECT STYLES ─────────────────────────────────────────────────────────
   const styleEl = document.createElement('style');
   styleEl.textContent = CSS;
   document.head.appendChild(styleEl);
 
-  // ── BUILD ROOT ─────────────────────────────────────────────────────────────
+  // ── BUILD ROOT ────────────────────────────────────────────────────────────
   const root = document.createElement('div');
   root.id = 'hcb-root';
   root.setAttribute('data-theme', THEME);
   root.setAttribute('data-mode', INLINE ? 'inline' : 'float');
 
-  // Shared panel HTML (same for both modes)
   const panelHTML = `
     <div id="hcb-panel" role="${INLINE ? 'region' : 'dialog'}" aria-label="${TITLE}">
       <div id="hcb-header">
         <div class="hcb-av">🏠</div>
-        <div>
+        <div class="hcb-header-text">
           <div class="hcb-title">${TITLE}</div>
-          <div class="hcb-sub">Minnesota affordable housing data</div>
+          <div class="hcb-sub">HousingLink Streams Data</div>
         </div>
         <button class="hcb-xbtn" aria-label="Close">
           <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
@@ -302,31 +338,27 @@
           placeholder="Ask about affordable housing in Minnesota…"
           aria-label="Your message"></textarea>
         <button id="hcb-send" aria-label="Send">
-          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#fff" stroke-width="2.5">
+          <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="#fff" stroke-width="2.5">
             <path stroke-linecap="round" stroke-linejoin="round"
               d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5"/>
           </svg>
         </button>
       </div>
-      <div id="hcb-footer">Data provided by your organization &bull; Powered by AI</div>
+      <div id="hcb-footer">
+        Powered by <a href="https://housinglink.org" target="_blank">HousingLink</a> Streams data &bull; AI-assisted
+      </div>
     </div>`;
 
   if (INLINE) {
-    // ── INLINE MODE: mount root inside the target div ──────────────────────
-    const container = document.getElementById(TARGET);
-    if (!container) {
-      console.error(`[HousingBot] Target element #${TARGET} not found.`);
-      return;
-    }
     root.innerHTML = panelHTML;
-    // Root fills the container completely
     root.style.cssText = 'width:100%;height:100%;display:flex;flex-direction:column;';
+    const container = document.getElementById(TARGET);
+    if (!container) { console.error(`[HousingBot] Target element #${TARGET} not found.`); return; }
     container.appendChild(root);
   } else {
-    // ── FLOAT MODE: FAB + panel appended to body ───────────────────────────
     root.innerHTML = `
       <button id="hcb-fab" aria-label="Open housing chatbot">
-        <svg class="i-chat" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="#fff" stroke-width="2">
+        <svg class="i-chat" width="26" height="26" fill="none" viewBox="0 0 24 24" stroke="#fff" stroke-width="2">
           <path stroke-linecap="round" stroke-linejoin="round"
             d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
         </svg>
@@ -338,23 +370,22 @@
     document.body.appendChild(root);
   }
 
-  // ── ELEMENT REFS ───────────────────────────────────────────────────────────
+  // ── ELEMENT REFS ──────────────────────────────────────────────────────────
   const panel = document.getElementById('hcb-panel');
   const msgs  = document.getElementById('hcb-msgs');
   const chips = document.getElementById('hcb-chips');
   const input = document.getElementById('hcb-input');
   const send  = document.getElementById('hcb-send');
 
-  // ── STATE ──────────────────────────────────────────────────────────────────
-  let isOpen     = INLINE; // inline starts open; float starts closed
+  // ── STATE ─────────────────────────────────────────────────────────────────
+  let isOpen     = INLINE;
   let isLoading  = false;
   let history    = [];
   let chipsShown = false;
 
-  // ── FLOAT MODE: OPEN / CLOSE ───────────────────────────────────────────────
+  // ── FLOAT: OPEN / CLOSE ───────────────────────────────────────────────────
   if (!INLINE) {
     const fab = document.getElementById('hcb-fab');
-
     function toggle() {
       isOpen = !isOpen;
       panel.classList.toggle('open', isOpen);
@@ -364,18 +395,15 @@
         if (msgs.children.length === 0) { addMsg('bot', WELCOME); showChips(); }
       }
     }
-
     fab.addEventListener('click', toggle);
     root.querySelector('.hcb-xbtn').addEventListener('click', toggle);
   } else {
-    // ── INLINE MODE: show welcome immediately ────────────────────────────────
     addMsg('bot', WELCOME);
     showChips();
-    // Close button is hidden via CSS, but wire it anyway as a no-op
     root.querySelector('.hcb-xbtn').addEventListener('click', () => {});
   }
 
-  // ── CHIPS ──────────────────────────────────────────────────────────────────
+  // ── CHIPS ─────────────────────────────────────────────────────────────────
   function showChips() {
     if (chipsShown) return;
     chipsShown = true;
@@ -388,16 +416,16 @@
     });
   }
 
-  // ── MESSAGES ───────────────────────────────────────────────────────────────
+  // ── MESSAGES ──────────────────────────────────────────────────────────────
   function addMsg(role, text) {
     const wrap = document.createElement('div');
     wrap.className = `hcb-msg ${role}`;
-    const bub = document.createElement('div');
-    bub.className = 'hcb-bub';
-    bub.textContent = text;
     const av = document.createElement('div');
     av.className = 'hcb-mav';
     av.textContent = role === 'bot' ? '🏠' : '👤';
+    const bub = document.createElement('div');
+    bub.className = 'hcb-bub';
+    bub.textContent = text;
     wrap.appendChild(av);
     wrap.appendChild(bub);
     msgs.appendChild(wrap);
@@ -407,31 +435,28 @@
 
   function addTyping() {
     const wrap = document.createElement('div');
-    wrap.className = 'hcb-msg bot';
-    wrap.id = 'hcb-typing';
+    wrap.className = 'hcb-msg bot'; wrap.id = 'hcb-typing';
     wrap.innerHTML = `<div class="hcb-mav">🏠</div>
-      <div class="hcb-bub"><div class="hcb-typing"><span></span><span></span><span></span></div></div>`;
+      <div class="hcb-bub" style="border:1px solid var(--border)">
+        <div class="hcb-typing"><span></span><span></span><span></span></div>
+      </div>`;
     msgs.appendChild(wrap);
     msgs.scrollTop = msgs.scrollHeight;
   }
 
   function removeTyping() { document.getElementById('hcb-typing')?.remove(); }
 
-  // ── SEND ───────────────────────────────────────────────────────────────────
+  // ── SEND ──────────────────────────────────────────────────────────────────
   async function sendMsg(text) {
     text = text.trim();
     if (!text || isLoading) return;
-
     chips.innerHTML = '';
     addMsg('user', text);
     input.value = '';
     input.style.height = 'auto';
     history.push({ role: 'user', content: text });
-
-    isLoading = true;
-    send.disabled = true;
+    isLoading = true; send.disabled = true;
     addTyping();
-
     try {
       const res = await fetch(`${WORKER}/chat`, {
         method: 'POST',
@@ -447,13 +472,11 @@
       removeTyping();
       addMsg('bot', "I'm having trouble connecting right now. Please try again in a moment.");
     } finally {
-      isLoading = false;
-      send.disabled = false;
-      input.focus();
+      isLoading = false; send.disabled = false; input.focus();
     }
   }
 
-  // ── INPUT EVENTS ───────────────────────────────────────────────────────────
+  // ── INPUT EVENTS ──────────────────────────────────────────────────────────
   send.addEventListener('click', () => sendMsg(input.value));
   input.addEventListener('keydown', e => {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMsg(input.value); }
