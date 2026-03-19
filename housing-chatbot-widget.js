@@ -345,7 +345,7 @@ What would you like to know? (Note: I am an AI and can make mistakes. Email dhyl
         </button>
       </div>
       <div id="hcb-footer">
-        Powered by <a href="https://housinglink.org" target="_blank">HousingLink</a> Streams data &bull; AI-assisted
+        Powered by HousingLink. AI-assisted and may make errors. Questions? <a href="mailto:dhylton@housinglink.org">dhylton@housinglink.org</a>
       </div>
     </div>`;
 
