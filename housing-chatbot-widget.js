@@ -289,20 +289,16 @@
 `;
 
   // ── CONTENT ──────────────────────────────────────────────────────────────────
-  const WELCOME = `Hello! I can help you understand HousingLink's affordable housing data. You can ask me things like:
-
-• How many units are affordable at 30% AMI in Minneapolis?
-• Which property in Bloomington has the most units affordable at 60% AMI or less?
-• Which properties in Duluth have an affordability commitment expiring soon?
-
-What would you like to know? (Note: I am an AI and can make mistakes. Email dhylton@housinglink.org if you have questions on the data)`;
+  const WELCOME = `Hello! I can help you understand HousingLink's affordable housing data in Streams. 
+  
+What would you like to know?`;
 
   const CHIPS = [
-    'What funding programs support affordable housing in Minnesota?',
+    'What is the funding of Westminster apartments in St Paul?',
     'How many units are affordable at 30% AMI in Minneapolis?',
-    'Which property in St Paul has the most affordable units?',
+    'Compare affordable housing in Minneapolis and St Paul.',
     'Which properties have affordability expiring soon?',
-    'How many LIHTC properties are there in Bloomington?',
+    'Provide and overview of affordable housing in Bloomington.',
     'Provide a list of affordable properties in Minnesota\'s 3rd Congressional district.',
   ];
 
