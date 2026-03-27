@@ -299,7 +299,7 @@ What would you like to know?`;
     'Compare affordable housing in Minneapolis and St Paul.',
     'Which properties have affordability expiring soon?',
     'Provide an overview of affordable housing in Bloomington.',
-    'How much affordable housing is in Minnesota's 3rd Congressional district.',
+    'How much affordable housing is in the Minnesota 3rd Congressional district.',
   ];
 
   // ── INJECT STYLES ─────────────────────────────────────────────────────────
