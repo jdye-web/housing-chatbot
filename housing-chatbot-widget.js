@@ -298,7 +298,7 @@ What would you like to know?`;
     'How many units are affordable at 30% AMI in Minneapolis?',
     'Compare affordable housing in Minneapolis and St Paul.',
     'Which properties have affordability expiring soon?',
-    'Provide and overview of affordable housing in Bloomington.',
+    'Provide an overview of affordable housing in Bloomington.',
     'Provide a list of affordable properties in Minnesota\'s 3rd Congressional district.',
   ];
 
