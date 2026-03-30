@@ -294,7 +294,7 @@
 What would you like to know?`;
 
   const CHIPS = [
-    'What is the funding of Westminster apartments in St Paul?',
+    'What is the funding of Westminster Place in St Paul?',
     'How many units are affordable at 30% AMI in Minneapolis?',
     'Compare affordable housing in Minneapolis and St Paul.',
     'Which properties have affordability expiring soon?',
