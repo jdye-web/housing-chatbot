@@ -297,7 +297,7 @@ What would you like to know?`;
     'What is the funding of Westminster Place in St Paul?',
     'How many units are affordable at 30% AMI in Minneapolis?',
     'Compare affordable housing in Minneapolis and St Paul.',
-    'Which properties in Duluth have affordability expiring soon?',
+    'Which properties in Duluth have affordability expiring in the next 2 years?',
     'Provide an overview of affordable housing in Bloomington.',
     'How much affordable housing is in the Minnesota 3rd Congressional district?',
   ];
