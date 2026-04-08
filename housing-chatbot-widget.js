@@ -418,7 +418,6 @@ What would you like to know? (Note: I am an AI in training and can make mistakes
       c.className = 'hcb-chip';
       c.textContent = q;
       c.addEventListener('click', () => {
-        removeChips();
         sendMsg(q);
       });
       chipsRow.appendChild(c);
@@ -497,7 +496,6 @@ What would you like to know? (Note: I am an AI in training and can make mistakes
   async function sendMsg(text) {
     text = text.trim();
     if (!text || isLoading) return;
-    removeChips();
     addMsg('user', text);
     input.value = '';
     input.style.height = 'auto';
