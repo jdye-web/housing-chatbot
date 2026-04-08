@@ -458,18 +458,19 @@ Want info on a specific property? Sharing the address is most reliable. (Note: I
   }
 
   // ── FORMAT MESSAGE TEXT — converts URLs to clickable links ───────────────
-  function formatText(text) {
+ function formatText(text) {
     const escaped = text
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;');
-    return escaped.replace(
-      /(https?:\/\/[^\s<>"]+)/g,
-      '<a href="$1" target="_blank" rel="noopener noreferrer" style="color:var(--accent);text-decoration:underline;">$1</a>'
-    );
+    return escaped
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(
+        /(https?:\/\/[^\s<>"]+)/g,
+        '<a href="$1" target="_blank" rel="noopener noreferrer" style="color:var(--accent);text-decoration:underline;">$1</a>'
+      );
   }
-
   // ── MESSAGES ──────────────────────────────────────────────────────────────
   function addMsg(role, text) {
     // Always insert before chips row if it exists, so chips stay at the bottom
