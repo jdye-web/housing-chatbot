@@ -221,6 +221,28 @@
   word-break: break-all;
 }
 .hcb-msg.bot .hcb-bub a:hover { opacity: 0.8; }
+.hcb-feedback { display: flex; align-items: center; gap: 6px; margin-top: 6px; padding-left: 36px; }
+.hcb-feedback button {
+  background: none; border: 1px solid var(--border); border-radius: 4px;
+  cursor: pointer; font-size: 14px; padding: 2px 7px; color: var(--muted);
+  transition: all 0.15s;
+}
+.hcb-feedback button:hover { border-color: var(--accent); color: var(--accent); }
+.hcb-feedback button.selected-up { background: #e6f4ea; border-color: #2e7d32; color: #2e7d32; }
+.hcb-feedback button.selected-down { background: #fdecea; border-color: #c62828; color: #c62828; }
+.hcb-feedback button:disabled { cursor: default; opacity: 0.5; }
+.hcb-feedback-note { font-size: 11px; color: var(--muted); margin-left: 4px; }
+.hcb-feedback-comment { margin-top: 6px; padding-left: 36px; display: flex; gap: 6px; }
+.hcb-feedback-comment textarea {
+  flex: 1; font-size: 12px; border: 1px solid var(--border); border-radius: 4px;
+  padding: 4px 7px; resize: none; font-family: inherit; color: var(--text);
+  background: var(--bg);
+}
+.hcb-feedback-comment button {
+  background: var(--accent); color: #fff; border: none; border-radius: 4px;
+  padding: 4px 10px; cursor: pointer; font-size: 12px; white-space: nowrap;
+}
+.hcb-feedback-comment button:hover { opacity: 0.85; }
 .hcb-msg.user .hcb-bub {
   background: var(--user-bg); color: var(--user-text);
   border-bottom-right-radius: 4px;
@@ -290,7 +312,7 @@
 `;
 
   // ── CONTENT ──────────────────────────────────────────────────────────────────
-  const WELCOME = `Hello! I can help you understand the stock of affordable housing in Minnesota from HousingLink's Streams database. Streams tracks physical properties with long-term affordability commitments, including:
+ const WELCOME = `Hello! I can help you understand the stock of affordable housing in Minnesota from HousingLink's Streams database. Streams tracks physical properties with long-term affordability commitments, including:
 
 • Low Income Housing Tax Credit (LIHTC)
 • Project Based Section 8 
@@ -306,6 +328,7 @@ Want info on a specific property? Sharing the address is most reliable. (Note: I
     'Provide an overview of affordable housing in Bloomington.',
     'How much affordable housing is the 3rd congressional district?',
   ];
+
 
   // ── INJECT STYLES ─────────────────────────────────────────────────────────
   const styleEl = document.createElement('style');
@@ -346,7 +369,7 @@ Want info on a specific property? Sharing the address is most reliable. (Note: I
         </button>
       </div>
       <div id="hcb-footer">
-        Powered by <a href="https://housinglink.org" target="_blank">HousingLink</a> Streams data &bull; AI-assisted &bull; Questions? <a href="mailto:jdye@housinglink.org">jdye@housinglink.org</a>
+        Powered by <a href="https://housinglink.org" target="_blank">HousingLink</a> Streams data &bull; AI-assisted &bull; Questions? <a href="mailto:dhylton@housinglink.org">dhylton@housinglink.org</a>
       </div>
     </div>`;
 
@@ -492,6 +515,86 @@ Want info on a specific property? Sharing the address is most reliable. (Note: I
 
   function removeTyping() { document.getElementById('hcb-typing')?.remove(); }
 
+  // ── FEEDBACK ──────────────────────────────────────────────────────────────
+  function addFeedback(question, answer) {
+    const wrap = document.createElement('div');
+    wrap.className = 'hcb-feedback';
+
+    const upBtn = document.createElement('button');
+    upBtn.textContent = '👍';
+    upBtn.title = 'Helpful';
+
+    const downBtn = document.createElement('button');
+    downBtn.textContent = '👎';
+    downBtn.title = 'Not helpful';
+
+    const note = document.createElement('span');
+    note.className = 'hcb-feedback-note';
+    note.textContent = 'Was this helpful?';
+
+    wrap.appendChild(upBtn);
+    wrap.appendChild(downBtn);
+    wrap.appendChild(note);
+
+    // Insert before chips row
+    if (chipsRow && chipsRow.parentNode === msgs) {
+      msgs.insertBefore(wrap, chipsRow);
+    } else {
+      msgs.appendChild(wrap);
+    }
+
+    async function submitFeedback(rating, comment) {
+      try {
+        await fetch(`${WORKER}/chat/feedback`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            question, answer, rating,
+            comment: comment || '',
+            timestamp: new Date().toISOString(),
+          }),
+        });
+      } catch (e) { /* silent fail */ }
+    }
+
+    upBtn.addEventListener('click', () => {
+      upBtn.classList.add('selected-up');
+      downBtn.disabled = true;
+      upBtn.disabled = true;
+      note.textContent = 'Thanks for your feedback!';
+      submitFeedback('thumbs_up', '');
+    });
+
+    downBtn.addEventListener('click', () => {
+      downBtn.classList.add('selected-down');
+      upBtn.disabled = true;
+      downBtn.disabled = true;
+      note.textContent = 'Sorry to hear that. Care to tell us more? (optional)';
+
+      // Show comment box
+      const commentWrap = document.createElement('div');
+      commentWrap.className = 'hcb-feedback-comment';
+      const ta = document.createElement('textarea');
+      ta.rows = 2;
+      ta.placeholder = 'What went wrong? (optional)';
+      const submitBtn = document.createElement('button');
+      submitBtn.textContent = 'Send';
+      commentWrap.appendChild(ta);
+      commentWrap.appendChild(submitBtn);
+
+      // Insert after feedback row
+      wrap.insertAdjacentElement('afterend', commentWrap);
+      msgs.scrollTop = msgs.scrollHeight;
+      ta.focus();
+
+      submitBtn.addEventListener('click', () => {
+        submitFeedback('thumbs_down', ta.value.trim());
+        commentWrap.remove();
+        note.textContent = 'Thanks for your feedback!';
+      });
+    });
+  }
+
   // ── SEND ──────────────────────────────────────────────────────────────────
   async function sendMsg(text) {
     text = text.trim();
@@ -513,6 +616,7 @@ Want info on a specific property? Sharing the address is most reliable. (Note: I
       const reply = data.reply || 'Sorry, I had trouble generating a response. Please try again.';
       addMsg('bot', reply);
       history.push({ role: 'assistant', content: reply });
+      addFeedback(text, reply);
     } catch (e) {
       removeTyping();
       addMsg('bot', "I'm having trouble connecting right now. Please try again in a moment.");
