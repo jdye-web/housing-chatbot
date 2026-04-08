@@ -369,7 +369,7 @@ Want info on a specific property? Sharing the address is most reliable. (Note: I
         </button>
       </div>
       <div id="hcb-footer">
-        Powered by <a href="https://housinglink.org" target="_blank">HousingLink</a> Streams data &bull; AI-assisted &bull; Questions? <a href="mailto:dhylton@housinglink.org">dhylton@housinglink.org</a>
+        Powered by <a href="https://housinglink.org" target="_blank">HousingLink</a> Streams data &bull; AI-assisted &bull; Questions? <a href="mailto:jdye@housinglink.org">jdye@housinglink.org</a>
       </div>
     </div>`;
 
