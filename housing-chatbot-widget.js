@@ -296,7 +296,7 @@
 • Project Based Section 8 
 • Public Housing, RH 515, HOME, Section 202, and 4D
 
-What would you like to know? (Note: I am an AI in training and can make mistakes. Email jdye@housinglink.org if I cause you any trouble)`;
+Detailed questions work best. For example, "What do you know about Era on Excelsior Apartments?" (Note: I am an AI in training and can make mistakes. Email jdye@housinglink.org if I cause you any trouble)`;
 
   const CHIPS = [
     'What is the funding of Westminster Place in St Paul?',
