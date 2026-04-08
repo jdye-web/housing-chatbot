@@ -48,12 +48,7 @@
 
   const INLINE = MODE === 'inline';
 
-  // ── HOUSINGLINK BRAND COLORS ───────────────────────────────────────────────
-  // Primary teal:   #008c99
-  // Secondary blue: #0073ae
-  // Green accent:   #00a94f
-  // Light teal bg:  tint of #008c99
-
+  // ── STYLES ──────────────────────────────────────────────────────────────────
   const CSS = `
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Open+Sans:wght@300;400;500;600&display=swap');
 
@@ -153,7 +148,6 @@
   display: flex; align-items: center; gap: 0.75rem; flex-shrink: 0;
   position: relative;
 }
-/* Subtle texture overlay on header */
 #hcb-header::after {
   content: '';
   position: absolute; inset: 0;
@@ -222,6 +216,11 @@
   border-bottom-left-radius: 4px;
   border: 1px solid var(--border);
 }
+.hcb-msg.bot .hcb-bub a {
+  color: var(--accent); text-decoration: underline;
+  word-break: break-all;
+}
+.hcb-msg.bot .hcb-bub a:hover { opacity: 0.8; }
 .hcb-msg.user .hcb-bub {
   background: var(--user-bg); color: var(--user-text);
   border-bottom-right-radius: 4px;
@@ -238,10 +237,12 @@
 .hcb-typing span:nth-child(3) { animation-delay: 0.36s; }
 @keyframes hcbBounce { 0%,60%,100% { transform:translateY(0); opacity:0.6; } 30% { transform:translateY(-6px); opacity:1; } }
 
-/* ── SUGGESTION CHIPS ── */
-#hcb-chips {
-  padding: 0 0.9rem 0.65rem; background: var(--surface);
+/* ── SUGGESTION CHIPS — now rendered inside the message area ── */
+.hcb-chips-row {
   display: flex; gap: 0.4rem; flex-wrap: wrap;
+  padding: 0.5rem 0 0.25rem 0;
+  align-self: flex-start;
+  max-width: 100%;
 }
 .hcb-chip {
   background: var(--bg); border: 1px solid var(--accent);
@@ -289,17 +290,21 @@
 `;
 
   // ── CONTENT ──────────────────────────────────────────────────────────────────
-  const WELCOME = `Hello! I can help you understand HousingLink's affordable housing data in Streams. 
-  
-What would you like to know?`;
+  const WELCOME = `Hello! I can help you understand the stock of affordable housing in Minnesota from HousingLink's Streams database. Streams tracks physical properties with long-term affordability commitments, including:
+
+• Low Income Housing Tax Credit (LIHTC)
+• Project Based Section 8 
+• Public Housing, RH 515, HOME, Section 202, and 4D
+
+What would you like to know? (Note: I am an AI in training and can make mistakes. Email jdye@housinglink.org if I cause you any trouble)`;
 
   const CHIPS = [
     'What is the funding of Westminster Place in St Paul?',
     'How many units are affordable at 30% AMI in Minneapolis?',
-    'Compare affordable housing in Minneapolis and St Paul.',
+    'Compare affordable housing in Minneapolis and St Paul',
     'Which properties in Duluth have affordability expiring in the next 2 years?',
     'Provide an overview of affordable housing in Bloomington.',
-    'How much affordable housing is in the Minnesota 3rd Congressional district?',
+    'How much affordable housing is the 3rd congressional district?',
   ];
 
   // ── INJECT STYLES ─────────────────────────────────────────────────────────
@@ -313,6 +318,7 @@ What would you like to know?`;
   root.setAttribute('data-theme', THEME);
   root.setAttribute('data-mode', INLINE ? 'inline' : 'float');
 
+  // No #hcb-chips div in the panel — chips are now rendered inside #hcb-msgs
   const panelHTML = `
     <div id="hcb-panel" role="${INLINE ? 'region' : 'dialog'}" aria-label="${TITLE}">
       <div id="hcb-header">
@@ -328,7 +334,6 @@ What would you like to know?`;
         </button>
       </div>
       <div id="hcb-msgs"></div>
-      <div id="hcb-chips"></div>
       <div id="hcb-input-row">
         <textarea id="hcb-input" rows="1"
           placeholder="Ask about affordable housing in Minnesota…"
@@ -341,7 +346,7 @@ What would you like to know?`;
         </button>
       </div>
       <div id="hcb-footer">
-        Powered by HousingLink. AI-assisted and may make errors. Questions? <a href="mailto:dhylton@housinglink.org">dhylton@housinglink.org</a>
+        Powered by <a href="https://housinglink.org" target="_blank">HousingLink</a> Streams data &bull; AI-assisted &bull; Questions? <a href="mailto:jdye@housinglink.org">jdye@housinglink.org</a>
       </div>
     </div>`;
 
@@ -369,7 +374,6 @@ What would you like to know?`;
   // ── ELEMENT REFS ──────────────────────────────────────────────────────────
   const panel = document.getElementById('hcb-panel');
   const msgs  = document.getElementById('hcb-msgs');
-  const chips = document.getElementById('hcb-chips');
   const input = document.getElementById('hcb-input');
   const send  = document.getElementById('hcb-send');
 
@@ -378,6 +382,7 @@ What would you like to know?`;
   let isLoading  = false;
   let history    = [];
   let chipsShown = false;
+  let chipsRow   = null; // reference to the chips row element inside msgs
 
   // ── FLOAT: OPEN / CLOSE ───────────────────────────────────────────────────
   if (!INLINE) {
@@ -399,21 +404,53 @@ What would you like to know?`;
     root.querySelector('.hcb-xbtn').addEventListener('click', () => {});
   }
 
-  // ── CHIPS ─────────────────────────────────────────────────────────────────
+  // ── CHIPS — rendered inside the message scroll area ───────────────────────
   function showChips() {
     if (chipsShown) return;
     chipsShown = true;
+
+    // Create a chips row div directly inside msgs (not inside a bubble)
+    chipsRow = document.createElement('div');
+    chipsRow.className = 'hcb-chips-row';
+
     CHIPS.forEach(q => {
       const c = document.createElement('button');
       c.className = 'hcb-chip';
       c.textContent = q;
-      c.addEventListener('click', () => { sendMsg(q); });
-      chips.appendChild(c);
+      c.addEventListener('click', () => {
+        removeChips();
+        sendMsg(q);
+      });
+      chipsRow.appendChild(c);
     });
+
+    msgs.appendChild(chipsRow);
+    msgs.scrollTop = msgs.scrollHeight;
+  }
+
+  function removeChips() {
+    if (chipsRow && chipsRow.parentNode) {
+      chipsRow.parentNode.removeChild(chipsRow);
+      chipsRow = null;
+    }
+  }
+
+  // ── FORMAT MESSAGE TEXT — converts URLs to clickable links ───────────────
+  function formatText(text) {
+    const escaped = text
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+    return escaped.replace(
+      /(https?:\/\/[^\s<>"]+)/g,
+      '<a href="$1" target="_blank" rel="noopener noreferrer" style="color:var(--accent);text-decoration:underline;">$1</a>'
+    );
   }
 
   // ── MESSAGES ──────────────────────────────────────────────────────────────
   function addMsg(role, text) {
+    // Always insert before chips row if it exists, so chips stay at the bottom
     const wrap = document.createElement('div');
     wrap.className = `hcb-msg ${role}`;
     const av = document.createElement('div');
@@ -421,10 +458,20 @@ What would you like to know?`;
     av.textContent = role === 'bot' ? '🏠' : '👤';
     const bub = document.createElement('div');
     bub.className = 'hcb-bub';
-    bub.textContent = text;
+    if (role === 'bot') {
+      bub.innerHTML = formatText(text);
+    } else {
+      bub.textContent = text;
+    }
     wrap.appendChild(av);
     wrap.appendChild(bub);
-    msgs.appendChild(wrap);
+
+    // Insert before chips row so chips always appear last
+    if (chipsRow && chipsRow.parentNode === msgs) {
+      msgs.insertBefore(wrap, chipsRow);
+    } else {
+      msgs.appendChild(wrap);
+    }
     msgs.scrollTop = msgs.scrollHeight;
     return wrap;
   }
@@ -436,7 +483,11 @@ What would you like to know?`;
       <div class="hcb-bub" style="border:1px solid var(--border)">
         <div class="hcb-typing"><span></span><span></span><span></span></div>
       </div>`;
-    msgs.appendChild(wrap);
+    if (chipsRow && chipsRow.parentNode === msgs) {
+      msgs.insertBefore(wrap, chipsRow);
+    } else {
+      msgs.appendChild(wrap);
+    }
     msgs.scrollTop = msgs.scrollHeight;
   }
 
@@ -446,6 +497,7 @@ What would you like to know?`;
   async function sendMsg(text) {
     text = text.trim();
     if (!text || isLoading) return;
+    removeChips();
     addMsg('user', text);
     input.value = '';
     input.style.height = 'auto';
