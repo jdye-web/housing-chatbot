@@ -441,6 +441,45 @@ Want info on a specific property? Sharing the address is most reliable. (Note: I
   let chipsShown = false;
   let chipsRow   = null;
 
+  // ── MOBILE SIZING — applied via JS so it overrides any host-page CSS ────────
+  function applyMobileStyles() {
+    if (INLINE) return;
+    const fab = document.getElementById('hcb-fab');
+    const isMobile = window.innerWidth <= 480;
+    if (isMobile) {
+      const margin = 8;
+      const w = window.innerWidth - margin * 2;
+      const h = window.innerHeight - 90;
+      panel.style.width  = w + 'px';
+      panel.style.height = h + 'px';
+      panel.style.right  = margin + 'px';
+      panel.style.bottom = '74px';
+      panel.style.borderRadius = '16px';
+      if (fab) {
+        fab.style.bottom = '16px';
+        fab.style.right  = '16px';
+        fab.style.width  = '52px';
+        fab.style.height = '52px';
+      }
+      input.style.fontSize = '16px'; // prevents iOS zoom
+    } else {
+      panel.style.width  = '';
+      panel.style.height = '';
+      panel.style.right  = '';
+      panel.style.bottom = '';
+      panel.style.borderRadius = '';
+      if (fab) {
+        fab.style.bottom = '';
+        fab.style.right  = '';
+        fab.style.width  = '';
+        fab.style.height = '';
+      }
+      input.style.fontSize = '';
+    }
+  }
+  applyMobileStyles();
+  window.addEventListener('resize', applyMobileStyles);
+
   // ── FLOAT: OPEN / CLOSE ───────────────────────────────────────────────────
   if (!INLINE) {
     const fab = document.getElementById('hcb-fab');
