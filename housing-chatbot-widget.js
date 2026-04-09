@@ -259,7 +259,7 @@
 .hcb-typing span:nth-child(3) { animation-delay: 0.36s; }
 @keyframes hcbBounce { 0%,60%,100% { transform:translateY(0); opacity:0.6; } 30% { transform:translateY(-6px); opacity:1; } }
 
-/* ── SUGGESTION CHIPS — now rendered inside the message area ── */
+/* ── SUGGESTION CHIPS ── */
 .hcb-chips-row {
   display: flex; gap: 0.4rem; flex-wrap: wrap;
   padding: 0.5rem 0 0.25rem 0;
@@ -309,6 +309,42 @@
 }
 #hcb-footer a { color: var(--accent); text-decoration: none; }
 #hcb-footer a:hover { text-decoration: underline; }
+
+/* ── MOBILE RESPONSIVE ── */
+@media (max-width: 480px) {
+  #hcb-root[data-mode="float"] #hcb-panel {
+    width: calc(100vw - 16px) !important;
+    height: calc(100vh - 96px) !important;
+    right: 8px !important;
+    bottom: 74px !important;
+    border-radius: 16px !important;
+  }
+  #hcb-fab {
+    bottom: 16px !important;
+    right: 16px !important;
+    width: 52px !important;
+    height: 52px !important;
+  }
+  .hcb-chips-row {
+    padding: 4px 0 2px 0 !important;
+  }
+  .hcb-chip {
+    font-size: 0.7rem !important;
+    padding: 0.25rem 0.6rem !important;
+  }
+  #hcb-input-row {
+    padding: 0.6rem 0.7rem !important;
+  }
+  #hcb-input {
+    font-size: 16px !important; /* prevents iOS zoom on focus */
+  }
+  .hcb-bub {
+    font-size: 0.85rem !important;
+  }
+  #hcb-msgs {
+    padding: 0.75rem 0.7rem !important;
+  }
+}
 `;
 
   // ── CONTENT ──────────────────────────────────────────────────────────────────
@@ -329,7 +365,6 @@ Want info on a specific property? Sharing the address is most reliable. (Note: I
     'How much affordable housing is the 3rd congressional district?',
   ];
 
-
   // ── INJECT STYLES ─────────────────────────────────────────────────────────
   const styleEl = document.createElement('style');
   styleEl.textContent = CSS;
@@ -341,7 +376,6 @@ Want info on a specific property? Sharing the address is most reliable. (Note: I
   root.setAttribute('data-theme', THEME);
   root.setAttribute('data-mode', INLINE ? 'inline' : 'float');
 
-  // No #hcb-chips div in the panel — chips are now rendered inside #hcb-msgs
   const panelHTML = `
     <div id="hcb-panel" role="${INLINE ? 'region' : 'dialog'}" aria-label="${TITLE}">
       <div id="hcb-header">
@@ -405,7 +439,7 @@ Want info on a specific property? Sharing the address is most reliable. (Note: I
   let isLoading  = false;
   let history    = [];
   let chipsShown = false;
-  let chipsRow   = null; // reference to the chips row element inside msgs
+  let chipsRow   = null;
 
   // ── FLOAT: OPEN / CLOSE ───────────────────────────────────────────────────
   if (!INLINE) {
@@ -427,25 +461,19 @@ Want info on a specific property? Sharing the address is most reliable. (Note: I
     root.querySelector('.hcb-xbtn').addEventListener('click', () => {});
   }
 
-  // ── CHIPS — rendered inside the message scroll area ───────────────────────
+  // ── CHIPS ─────────────────────────────────────────────────────────────────
   function showChips() {
     if (chipsShown) return;
     chipsShown = true;
-
-    // Create a chips row div directly inside msgs (not inside a bubble)
     chipsRow = document.createElement('div');
     chipsRow.className = 'hcb-chips-row';
-
     CHIPS.forEach(q => {
       const c = document.createElement('button');
       c.className = 'hcb-chip';
       c.textContent = q;
-      c.addEventListener('click', () => {
-        sendMsg(q);
-      });
+      c.addEventListener('click', () => { sendMsg(q); });
       chipsRow.appendChild(c);
     });
-
     msgs.appendChild(chipsRow);
     msgs.scrollTop = msgs.scrollHeight;
   }
@@ -457,8 +485,8 @@ Want info on a specific property? Sharing the address is most reliable. (Note: I
     }
   }
 
-  // ── FORMAT MESSAGE TEXT — converts URLs to clickable links ───────────────
- function formatText(text) {
+  // ── FORMAT TEXT ───────────────────────────────────────────────────────────
+  function formatText(text) {
     const escaped = text
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')
@@ -471,9 +499,9 @@ Want info on a specific property? Sharing the address is most reliable. (Note: I
         '<a href="$1" target="_blank" rel="noopener noreferrer" style="color:var(--accent);text-decoration:underline;">$1</a>'
       );
   }
+
   // ── MESSAGES ──────────────────────────────────────────────────────────────
   function addMsg(role, text) {
-    // Always insert before chips row if it exists, so chips stay at the bottom
     const wrap = document.createElement('div');
     wrap.className = `hcb-msg ${role}`;
     const av = document.createElement('div');
@@ -488,8 +516,6 @@ Want info on a specific property? Sharing the address is most reliable. (Note: I
     }
     wrap.appendChild(av);
     wrap.appendChild(bub);
-
-    // Insert before chips row so chips always appear last
     if (chipsRow && chipsRow.parentNode === msgs) {
       msgs.insertBefore(wrap, chipsRow);
     } else {
@@ -520,24 +546,16 @@ Want info on a specific property? Sharing the address is most reliable. (Note: I
   function addFeedback(question, answer) {
     const wrap = document.createElement('div');
     wrap.className = 'hcb-feedback';
-
     const upBtn = document.createElement('button');
-    upBtn.textContent = '👍';
-    upBtn.title = 'Helpful';
-
+    upBtn.textContent = '👍'; upBtn.title = 'Helpful';
     const downBtn = document.createElement('button');
-    downBtn.textContent = '👎';
-    downBtn.title = 'Not helpful';
-
+    downBtn.textContent = '👎'; downBtn.title = 'Not helpful';
     const note = document.createElement('span');
     note.className = 'hcb-feedback-note';
     note.textContent = 'Was this helpful?';
-
     wrap.appendChild(upBtn);
     wrap.appendChild(downBtn);
     wrap.appendChild(note);
-
-    // Insert before chips row
     if (chipsRow && chipsRow.parentNode === msgs) {
       msgs.insertBefore(wrap, chipsRow);
     } else {
@@ -549,45 +567,32 @@ Want info on a specific property? Sharing the address is most reliable. (Note: I
         await fetch(`${WORKER}/chat/feedback`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            question, answer, rating,
-            comment: comment || '',
-            timestamp: new Date().toISOString(),
-          }),
+          body: JSON.stringify({ question, answer, rating, comment: comment || '', timestamp: new Date().toISOString() }),
         });
       } catch (e) { /* silent fail */ }
     }
 
     upBtn.addEventListener('click', () => {
       upBtn.classList.add('selected-up');
-      downBtn.disabled = true;
-      upBtn.disabled = true;
+      downBtn.disabled = true; upBtn.disabled = true;
       note.textContent = 'Thanks for your feedback!';
       submitFeedback('thumbs_up', '');
     });
 
     downBtn.addEventListener('click', () => {
       downBtn.classList.add('selected-down');
-      upBtn.disabled = true;
-      downBtn.disabled = true;
+      upBtn.disabled = true; downBtn.disabled = true;
       note.textContent = 'Sorry to hear that. Care to tell us more? (optional)';
-
-      // Show comment box
       const commentWrap = document.createElement('div');
       commentWrap.className = 'hcb-feedback-comment';
       const ta = document.createElement('textarea');
-      ta.rows = 2;
-      ta.placeholder = 'What went wrong? (optional)';
+      ta.rows = 2; ta.placeholder = 'What went wrong? (optional)';
       const submitBtn = document.createElement('button');
       submitBtn.textContent = 'Send';
-      commentWrap.appendChild(ta);
-      commentWrap.appendChild(submitBtn);
-
-      // Insert after feedback row
+      commentWrap.appendChild(ta); commentWrap.appendChild(submitBtn);
       wrap.insertAdjacentElement('afterend', commentWrap);
       msgs.scrollTop = msgs.scrollHeight;
       ta.focus();
-
       submitBtn.addEventListener('click', () => {
         submitFeedback('thumbs_down', ta.value.trim());
         commentWrap.remove();
