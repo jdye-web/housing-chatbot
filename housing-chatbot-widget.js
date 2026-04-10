@@ -139,6 +139,7 @@
 #hcb-panel {
   background: var(--bg); border: 1px solid var(--border);
   display: flex; flex-direction: column; overflow: hidden;
+  justify-content: space-between;
 }
 
 /* ── HEADER ── */
@@ -186,10 +187,9 @@
 
 /* ── MESSAGES ── */
 #hcb-msgs {
-  flex: 1; overflow-y: auto; padding: 1rem 0.9rem;
+  overflow-y: auto; padding: 1rem 0.9rem;
   display: flex; flex-direction: column; gap: 0.7rem;
   background: var(--surface);
-  min-height: 0;
 }
 #hcb-msgs::-webkit-scrollbar { width: 4px; }
 #hcb-msgs::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
