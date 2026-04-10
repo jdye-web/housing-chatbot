@@ -126,13 +126,13 @@
 
 /* ── INLINE PANEL ── */
 #hcb-root[data-mode="inline"] {
-  display: flex; flex-direction: column;
-  height: 100%; min-height: 400px;
+  display: block;
+  width: 100%;
 }
 #hcb-root[data-mode="inline"] #hcb-panel {
-  position: relative; width: 100%; height: 100%;
+  position: relative; width: 100%; height: auto;
   border-radius: 16px; box-shadow: var(--shadow);
-  transform: none; opacity: 1; pointer-events: all; flex: 1;
+  transform: none; opacity: 1; pointer-events: all;
 }
 
 /* ── SHARED PANEL ── */
