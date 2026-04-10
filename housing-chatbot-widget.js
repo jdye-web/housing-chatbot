@@ -126,13 +126,13 @@
 
 /* ── INLINE PANEL ── */
 #hcb-root[data-mode="inline"] {
-  display: block;
-  width: 100%;
+  display: flex; flex-direction: column;
+  height: 100%; min-height: 400px;
 }
 #hcb-root[data-mode="inline"] #hcb-panel {
-  position: relative; width: 100%; height: auto;
+  position: relative; width: 100%; height: 100%;
   border-radius: 16px; box-shadow: var(--shadow);
-  transform: none; opacity: 1; pointer-events: all;
+  transform: none; opacity: 1; pointer-events: all; flex: 1;
 }
 
 /* ── SHARED PANEL ── */
@@ -186,9 +186,10 @@
 
 /* ── MESSAGES ── */
 #hcb-msgs {
-  overflow-y: auto; padding: 1rem 0.9rem;
+  flex: 1; overflow-y: auto; padding: 1rem 0.9rem;
   display: flex; flex-direction: column; gap: 0.7rem;
   background: var(--surface);
+  min-height: 0;
 }
 #hcb-msgs::-webkit-scrollbar { width: 4px; }
 #hcb-msgs::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
