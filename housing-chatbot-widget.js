@@ -137,9 +137,8 @@
 
 /* ── SHARED PANEL ── */
 #hcb-panel {
-  background: var(--bg); border: 1px solid var(--border);
+  background: var(--surface); border: 1px solid var(--border);
   display: flex; flex-direction: column; overflow: hidden;
-  justify-content: space-between;
 }
 
 /* ── HEADER ── */
@@ -187,9 +186,10 @@
 
 /* ── MESSAGES ── */
 #hcb-msgs {
-  overflow-y: auto; padding: 1rem 0.9rem;
+  flex: 1; overflow-y: auto; padding: 1rem 0.9rem;
   display: flex; flex-direction: column; gap: 0.7rem;
   background: var(--surface);
+  min-height: 0;
 }
 #hcb-msgs::-webkit-scrollbar { width: 4px; }
 #hcb-msgs::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
@@ -263,9 +263,8 @@
 /* ── SUGGESTION CHIPS ── */
 #hcb-chips-bar {
   display: flex; gap: 0.4rem; flex-wrap: wrap;
-  padding: 0.5rem 0.9rem 0.6rem;
-  background: var(--bg);
-  border-top: 1px solid var(--border);
+  padding: 0.4rem 0.9rem 0.7rem;
+  background: var(--surface);
   flex-shrink: 0;
 }
 .hcb-chip {
@@ -278,11 +277,11 @@
 
 /* ── INPUT ROW ── */
 #hcb-input-row {
-  display: flex; gap: 0.45rem; padding: 0.75rem 0.9rem;
-  background: var(--bg); border-top: 1px solid var(--border); flex-shrink: 0;
+  display: flex; gap: 0.45rem; padding: 0.5rem 0.9rem 0.25rem;
+  background: var(--surface); flex-shrink: 0;
 }
 #hcb-input {
-  flex: 1; background: var(--surface); border: 1px solid var(--border);
+  flex: 1; background: var(--bg); border: 1px solid var(--border);
   border-radius: 12px; color: var(--text);
   font-family: 'Open Sans', sans-serif; font-size: 0.875rem;
   padding: 0.55rem 0.85rem; outline: none; resize: none;
@@ -306,7 +305,7 @@
 #hcb-footer {
   padding: 0.4rem 0.9rem 0.5rem; text-align: center;
   font-family: 'Open Sans', sans-serif; font-size: 0.67rem;
-  color: var(--muted); background: var(--bg);
+  color: var(--muted); background: var(--surface);
   border-top: 1px solid var(--border);
 }
 #hcb-footer a { color: var(--accent); text-decoration: none; }
