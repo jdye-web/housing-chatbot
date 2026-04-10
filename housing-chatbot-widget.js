@@ -186,10 +186,9 @@
 
 /* ── MESSAGES ── */
 #hcb-msgs {
-  flex: 1; overflow-y: auto; padding: 1rem 0.9rem;
+  overflow-y: auto; padding: 1rem 0.9rem;
   display: flex; flex-direction: column; gap: 0.7rem;
   background: var(--surface);
-  min-height: 0;
 }
 #hcb-msgs::-webkit-scrollbar { width: 4px; }
 #hcb-msgs::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
@@ -443,6 +442,23 @@ Want info on a specific property? Sharing the address is most reliable. (Note: I
   let chipsShown = false;
   let chipsRow   = null;
 
+  // ── PANEL AUTO-RESIZE — shrink to content, expand as conversation grows ─────
+  function resizePanel() {
+    if (INLINE) {
+      // For inline mode: set msgs max-height so panel doesn't overflow container
+      const panelEl = document.getElementById('hcb-panel');
+      const inputRow = document.getElementById('hcb-input-row');
+      const chipsBarEl = document.getElementById('hcb-chips-bar');
+      const footer = document.getElementById('hcb-footer');
+      const header = document.getElementById('hcb-header');
+      if (!panelEl || !inputRow || !chipsBarEl || !footer || !header) return;
+      const fixedHeight = header.offsetHeight + inputRow.offsetHeight + chipsBarEl.offsetHeight + footer.offsetHeight;
+      const containerHeight = panelEl.parentElement ? panelEl.parentElement.offsetHeight : window.innerHeight;
+      const maxMsgsHeight = containerHeight - fixedHeight - 8;
+      msgs.style.maxHeight = maxMsgsHeight + 'px';
+    }
+  }
+
   // ── MOBILE SIZING — applied via JS so it overrides any host-page CSS ────────
   function applyMobileStyles() {
     if (INLINE) return;
@@ -480,7 +496,8 @@ Want info on a specific property? Sharing the address is most reliable. (Note: I
     }
   }
   applyMobileStyles();
-  window.addEventListener('resize', applyMobileStyles);
+  resizePanel();
+  window.addEventListener('resize', () => { applyMobileStyles(); resizePanel(); });
 
   // ── FLOAT: OPEN / CLOSE ───────────────────────────────────────────────────
   // ── CHIPS — rendered in persistent bar below input ───────────────────────
@@ -518,6 +535,7 @@ Want info on a specific property? Sharing the address is most reliable. (Note: I
   } else {
     addMsg('bot', WELCOME);
     showChips();
+    resizePanel();
     root.querySelector('.hcb-xbtn').addEventListener('click', () => {});
   }
 
@@ -554,6 +572,7 @@ Want info on a specific property? Sharing the address is most reliable. (Note: I
     wrap.appendChild(bub);
     msgs.appendChild(wrap);
     msgs.scrollTop = msgs.scrollHeight;
+    resizePanel();
     return wrap;
   }
 
