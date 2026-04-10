@@ -363,7 +363,7 @@ Want info on a specific property? Sharing the address is most reliable. (Note: I
     'Compare affordable housing in Minneapolis and St Paul',
     'Which properties in Duluth have affordability expiring in the next 2 years?',
     'Provide an overview of affordable housing in Bloomington.',
-    'How much affordable housing is the 3rd congressional district?',
+    'How much affordable housing is in Minneapolis Ward 4?',
   ];
 
   // ── INJECT STYLES ─────────────────────────────────────────────────────────
