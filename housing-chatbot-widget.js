@@ -484,25 +484,6 @@ Want info on a specific property? Sharing the address is most reliable. (Note: I
   window.addEventListener('resize', applyMobileStyles);
 
   // ── FLOAT: OPEN / CLOSE ───────────────────────────────────────────────────
-  if (!INLINE) {
-    const fab = document.getElementById('hcb-fab');
-    function toggle() {
-      isOpen = !isOpen;
-      panel.classList.toggle('open', isOpen);
-      fab.classList.toggle('open', isOpen);
-      if (isOpen) {
-        input.focus();
-        if (msgs.children.length === 0) { addMsg('bot', WELCOME); showChips(); }
-      }
-    }
-    fab.addEventListener('click', toggle);
-    root.querySelector('.hcb-xbtn').addEventListener('click', toggle);
-  } else {
-    addMsg('bot', WELCOME);
-    showChips();
-    root.querySelector('.hcb-xbtn').addEventListener('click', () => {});
-  }
-
   // ── CHIPS — rendered in persistent bar below input ───────────────────────
   const chipsBar = document.getElementById('hcb-chips-bar');
 
@@ -520,6 +501,25 @@ Want info on a specific property? Sharing the address is most reliable. (Note: I
 
   function removeChips() {
     // Chips persist — do nothing
+  }
+
+  if (!INLINE) {
+    const fab = document.getElementById('hcb-fab');
+    function toggle() {
+      isOpen = !isOpen;
+      panel.classList.toggle('open', isOpen);
+      fab.classList.toggle('open', isOpen);
+      if (isOpen) {
+        input.focus();
+        if (msgs.children.length === 0) { addMsg('bot', WELCOME); showChips(); }
+      }
+    }
+    fab.addEventListener('click', toggle);
+    root.querySelector('.hcb-xbtn').addEventListener('click', toggle);
+  } else {
+    addMsg('bot', WELCOME);
+    showChips();
+    root.querySelector('.hcb-xbtn').addEventListener('click', () => {});
   }
 
   // ── FORMAT TEXT ───────────────────────────────────────────────────────────
