@@ -189,6 +189,7 @@
   flex: 1; overflow-y: auto; padding: 1rem 0.9rem;
   display: flex; flex-direction: column; gap: 0.7rem;
   background: var(--surface);
+  min-height: 0; /* allows flex child to shrink below content size */
 }
 #hcb-msgs::-webkit-scrollbar { width: 4px; }
 #hcb-msgs::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
@@ -284,7 +285,7 @@
   border-radius: 12px; color: var(--text);
   font-family: 'Open Sans', sans-serif; font-size: 0.875rem;
   padding: 0.55rem 0.85rem; outline: none; resize: none;
-  max-height: 120px; line-height: 1.45; transition: border-color 0.15s, box-shadow 0.15s;
+  min-height: 60px; max-height: 240px; line-height: 1.45; transition: border-color 0.15s, box-shadow 0.15s;
 }
 #hcb-input:focus {
   border-color: var(--accent);
@@ -294,7 +295,7 @@
 #hcb-send {
   background: var(--header-grad); border: none; border-radius: 12px;
   width: 40px; height: 40px; cursor: pointer; flex-shrink: 0;
-  display: flex; align-items: center; justify-content: center; align-self: flex-end;
+  display: flex; align-items: center; justify-content: center; align-self: flex-end; margin-bottom: 2px;
   transition: opacity 0.15s, transform 0.15s;
 }
 #hcb-send:hover   { opacity: 0.88; transform: scale(1.05); }
@@ -392,7 +393,7 @@ Want info on a specific property? Sharing the address is most reliable. (Note: I
       </div>
       <div id="hcb-msgs"></div>
       <div id="hcb-input-row">
-        <textarea id="hcb-input" rows="1"
+        <textarea id="hcb-input" rows="3"
           placeholder="Ask about affordable housing in Minnesota…"
           aria-label="Your message"></textarea>
         <button id="hcb-send" aria-label="Send">
@@ -677,7 +678,7 @@ Want info on a specific property? Sharing the address is most reliable. (Note: I
   });
   input.addEventListener('input', () => {
     input.style.height = 'auto';
-    input.style.height = Math.min(input.scrollHeight, 120) + 'px';
+    input.style.height = Math.max(60, Math.min(input.scrollHeight, 240)) + 'px';
   });
 
 })();
