@@ -186,10 +186,10 @@
 
 /* ── MESSAGES ── */
 #hcb-msgs {
-  overflow-y: auto; padding: 1rem 0.9rem;
+  flex: 1; overflow-y: auto; padding: 1rem 0.9rem;
   display: flex; flex-direction: column; gap: 0.7rem;
   background: var(--surface);
-  flex-shrink: 0;
+  min-height: 0;
 }
 #hcb-msgs::-webkit-scrollbar { width: 4px; }
 #hcb-msgs::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
@@ -261,11 +261,12 @@
 @keyframes hcbBounce { 0%,60%,100% { transform:translateY(0); opacity:0.6; } 30% { transform:translateY(-6px); opacity:1; } }
 
 /* ── SUGGESTION CHIPS ── */
-.hcb-chips-row {
+#hcb-chips-bar {
   display: flex; gap: 0.4rem; flex-wrap: wrap;
-  padding: 0.5rem 0 0.25rem 0;
-  align-self: flex-start;
-  max-width: 100%;
+  padding: 0.5rem 0.9rem 0.6rem;
+  background: var(--bg);
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
 }
 .hcb-chip {
   background: var(--bg); border: 1px solid var(--accent);
@@ -279,7 +280,6 @@
 #hcb-input-row {
   display: flex; gap: 0.45rem; padding: 0.75rem 0.9rem;
   background: var(--bg); border-top: 1px solid var(--border); flex-shrink: 0;
-  margin-top: auto;
 }
 #hcb-input {
   flex: 1; background: var(--surface); border: 1px solid var(--border);
@@ -404,6 +404,7 @@ Want info on a specific property? Sharing the address is most reliable. (Note: I
           </svg>
         </button>
       </div>
+      <div id="hcb-chips-bar"></div>
       <div id="hcb-footer">
         Powered by <a href="https://housinglink.org" target="_blank">HousingLink</a> Streams data &bull; AI-assisted &bull; Questions? <a href="mailto:jdye@housinglink.org">jdye@housinglink.org</a>
       </div>
@@ -502,28 +503,23 @@ Want info on a specific property? Sharing the address is most reliable. (Note: I
     root.querySelector('.hcb-xbtn').addEventListener('click', () => {});
   }
 
-  // ── CHIPS ─────────────────────────────────────────────────────────────────
+  // ── CHIPS — rendered in persistent bar below input ───────────────────────
+  const chipsBar = document.getElementById('hcb-chips-bar');
+
   function showChips() {
     if (chipsShown) return;
     chipsShown = true;
-    chipsRow = document.createElement('div');
-    chipsRow.className = 'hcb-chips-row';
     CHIPS.forEach(q => {
       const c = document.createElement('button');
       c.className = 'hcb-chip';
       c.textContent = q;
       c.addEventListener('click', () => { sendMsg(q); });
-      chipsRow.appendChild(c);
+      chipsBar.appendChild(c);
     });
-    msgs.appendChild(chipsRow);
-    msgs.scrollTop = msgs.scrollHeight;
   }
 
   function removeChips() {
-    if (chipsRow && chipsRow.parentNode) {
-      chipsRow.parentNode.removeChild(chipsRow);
-      chipsRow = null;
-    }
+    // Chips persist — do nothing
   }
 
   // ── FORMAT TEXT ───────────────────────────────────────────────────────────
@@ -557,11 +553,7 @@ Want info on a specific property? Sharing the address is most reliable. (Note: I
     }
     wrap.appendChild(av);
     wrap.appendChild(bub);
-    if (chipsRow && chipsRow.parentNode === msgs) {
-      msgs.insertBefore(wrap, chipsRow);
-    } else {
-      msgs.appendChild(wrap);
-    }
+    msgs.appendChild(wrap);
     msgs.scrollTop = msgs.scrollHeight;
     return wrap;
   }
@@ -573,11 +565,7 @@ Want info on a specific property? Sharing the address is most reliable. (Note: I
       <div class="hcb-bub" style="border:1px solid var(--border)">
         <div class="hcb-typing"><span></span><span></span><span></span></div>
       </div>`;
-    if (chipsRow && chipsRow.parentNode === msgs) {
-      msgs.insertBefore(wrap, chipsRow);
-    } else {
-      msgs.appendChild(wrap);
-    }
+    msgs.appendChild(wrap);
     msgs.scrollTop = msgs.scrollHeight;
   }
 
@@ -597,11 +585,7 @@ Want info on a specific property? Sharing the address is most reliable. (Note: I
     wrap.appendChild(upBtn);
     wrap.appendChild(downBtn);
     wrap.appendChild(note);
-    if (chipsRow && chipsRow.parentNode === msgs) {
-      msgs.insertBefore(wrap, chipsRow);
-    } else {
-      msgs.appendChild(wrap);
-    }
+    msgs.appendChild(wrap);
 
     async function submitFeedback(rating, comment) {
       try {
