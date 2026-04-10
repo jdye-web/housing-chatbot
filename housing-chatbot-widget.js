@@ -186,10 +186,10 @@
 
 /* ── MESSAGES ── */
 #hcb-msgs {
-  flex: 1; overflow-y: auto; padding: 1rem 0.9rem;
+  overflow-y: auto; padding: 1rem 0.9rem;
   display: flex; flex-direction: column; gap: 0.7rem;
   background: var(--surface);
-  min-height: 0; /* allows flex child to shrink below content size */
+  flex-shrink: 0;
 }
 #hcb-msgs::-webkit-scrollbar { width: 4px; }
 #hcb-msgs::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
@@ -279,6 +279,7 @@
 #hcb-input-row {
   display: flex; gap: 0.45rem; padding: 0.75rem 0.9rem;
   background: var(--bg); border-top: 1px solid var(--border); flex-shrink: 0;
+  margin-top: auto;
 }
 #hcb-input {
   flex: 1; background: var(--surface); border: 1px solid var(--border);
