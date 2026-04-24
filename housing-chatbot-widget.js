@@ -349,13 +349,13 @@
 `;
 
   // ── CONTENT ──────────────────────────────────────────────────────────────────
- const WELCOME = `Hello! I can help you understand the stock of affordable housing in Minnesota from HousingLink's Streams database. Streams tracks physical properties with long-term affordability commitments, including:
+ const WELCOME = `Hello! I can help you understand the physical stock of affordable housing in Minnesota from HousingLink's Streams database. Streams tracks physical properties with long-term affordability commitments, including:
 
 • Low Income Housing Tax Credit (LIHTC)
 • Project Based Section 8 
 • Public Housing, RH 515, HOME, Section 202, and 4D
 
-Want info on a specific property? Sharing the address is most reliable. (Note: I am an AI in training and can make mistakes. Email jdye@housinglink.org if I cause you any trouble)`;
+Want info on a specific property? Sharing the address is most reliable. (Note: I am an AI in training and can make mistakes.`;
 
   const CHIPS = [
     'What is the funding of Westminster Place in St Paul?',
